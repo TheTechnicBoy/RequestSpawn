@@ -32,31 +32,43 @@ public class RequestSpawn {
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, ModConfig.CONFIG);
     }
 
+    static boolean CONFIG_ENABLED;
+    static int CONFIG_PORT;
+    static boolean CONFIG_AUTH;
+    static String CONFIG_PASSWORD;
+    static String CONFIG_USERNAME;
+
     private void setup(final FMLCommonSetupEvent event) {
-        int _port = ModConfig.PORT.get();
-        try {
-            httpServer = HttpServer.create(new InetSocketAddress(_port), 0);
-            httpServer.createContext("/spawn", new SpawnHandler());
-            httpServer.setExecutor(null);
-            httpServer.start();
-            LOGGER.info("Server started on port " + _port);
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage() + " " + e.getCause());
-        }
-
-
+        CONFIG_ENABLED = ModConfig.ENABLED.get();
+        CONFIG_PORT = ModConfig.PORT.get();
+        CONFIG_AUTH = ModConfig.AUTH.get();
+        CONFIG_PASSWORD = ModConfig.PASSWORD.get();
+        CONFIG_USERNAME = ModConfig.USERNAME.get();
     }
-
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        HTTPServerOnline = true;
-        server = ServerLifecycleHooks.getCurrentServer();
+        if(CONFIG_ENABLED) {
+            HTTPServerOnline = true;
+            server = ServerLifecycleHooks.getCurrentServer();
+            try {
+                httpServer = HttpServer.create(new InetSocketAddress(CONFIG_PORT), 0);
+                httpServer.createContext("/spawn", new SpawnHandler());
+                httpServer.setExecutor(null);
+                httpServer.start();
+                LOGGER.info("Server started on port " + CONFIG_PORT);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage() + " " + e.getCause());
+            }
+        }
     }
 
     @SubscribeEvent
     public void onServerClose(ServerStoppingEvent event) {
         HTTPServerOnline = false;
+        server = null;
+        httpServer.stop(0);
+        httpServer = null;
     }
 
 }

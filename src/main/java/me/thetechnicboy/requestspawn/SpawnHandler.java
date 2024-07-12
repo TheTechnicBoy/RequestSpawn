@@ -39,8 +39,7 @@ public class SpawnHandler implements HttpHandler {
             return;
         }
 
-        boolean auth = ModConfig.AUTH.get();
-        if (auth) {
+        if (RequestSpawn.CONFIG_AUTH) {
             String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
             if (authHeader == null || !authHeader.startsWith("Basic ")) {
                 exchange.sendResponseHeaders(401, -1);
@@ -50,8 +49,8 @@ public class SpawnHandler implements HttpHandler {
             String base64Credentials = authHeader.substring("Basic".length()).trim();
             String credentials = new String(Base64.getDecoder().decode(base64Credentials));
             String[] values = credentials.split(":", 2);
-            String user = ModConfig.USERNAME.get();
-            String pass = ModConfig.PASSWORD.get();
+            String user = RequestSpawn.CONFIG_USERNAME;
+            String pass = RequestSpawn.CONFIG_PASSWORD;
 
             if (values.length < 2 || !values[0].equals(user) || !values[1].equals(pass)) {
                 exchange.sendResponseHeaders(401, -1);

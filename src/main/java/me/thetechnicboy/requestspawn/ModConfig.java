@@ -5,6 +5,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public class ModConfig {
     public static final String CATEGORY_GENERAL = "general";
     public static ForgeConfigSpec CONFIG;
+
+    public static ForgeConfigSpec.BooleanValue ENABLED;
     public static ForgeConfigSpec.BooleanValue AUTH;
     public static ForgeConfigSpec.ConfigValue<String> USERNAME;
     public static ForgeConfigSpec.ConfigValue<String> PASSWORD;
@@ -13,6 +15,10 @@ public class ModConfig {
     static {
         ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
         BUILDER.comment("General settings").push(CATEGORY_GENERAL);
+
+        ENABLED = BUILDER
+                .comment("Enables the API Integration")
+                .define("enabled", true);
 
         PORT = BUILDER
                 .comment("Port number")
