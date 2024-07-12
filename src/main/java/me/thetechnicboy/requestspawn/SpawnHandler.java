@@ -84,6 +84,7 @@ public class SpawnHandler implements HttpHandler {
         int x = Integer.MIN_VALUE;
         int y = Integer.MIN_VALUE;
         int z = Integer.MIN_VALUE;
+        JsonObject nbt = new JsonObject();
 
         //TRY TO READ VALUES
         try { mob = obj.get("mob").getAsString(); }
@@ -95,6 +96,8 @@ public class SpawnHandler implements HttpHandler {
         try { y = obj.get("y").getAsInt(); }
         catch(Exception e){ }
         try { z = obj.get("z").getAsInt(); }
+        catch(Exception e){ }
+        try { nbt = obj.get("nbt").getAsJsonObject(); }
         catch(Exception e){ }
 
 
@@ -112,10 +115,10 @@ public class SpawnHandler implements HttpHandler {
         //MAKE COMMAND
         String command;
         if(player != ""){
-            command = "execute at " + player + " run summon " + mob + " ~ ~ ~";
+            command = "execute at " + player + " run summon " + mob  + " ~ ~ ~ " + nbt.toString();
         }
         else {
-            command = "summon " + mob + " " + x + " " + y + " " + z;
+            command = "summon " + mob + " " + x + " " + y + " " + z + " " + nbt.toString();
         }
 
         //NOW EXECUTE THE COMMAND
