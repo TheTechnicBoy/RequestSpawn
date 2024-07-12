@@ -22,7 +22,7 @@ This mod sets up an HTTP server to handle requests for spawning entities within 
 }
 ```
 ## API Details
-- EndPoint: localhost:<PORT>/spawn
+- EndPoint: localhost:PORT/spawn
 - Header: Content-Type: application/json
-- Authentication: BasicAuth <USER>:<PASSWORD>
+- Authentication: BasicAuth USER:PASSWORD
 - Data: JSON as shown above
