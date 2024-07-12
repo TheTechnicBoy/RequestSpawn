@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -28,15 +29,17 @@ public class RequestSpawn {
     public RequestSpawn() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         MinecraftForge.EVENT_BUS.register(this);
+        ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, ModConfig.CONFIG);
     }
 
     private void setup(final FMLCommonSetupEvent event) {
-        int _port = 1234;
+        int _port = ModConfig.PORT.get();
         try {
             httpServer = HttpServer.create(new InetSocketAddress(_port), 0);
             httpServer.createContext("/spawn", new SpawnHandler());
             httpServer.setExecutor(null);
             httpServer.start();
+            LOGGER.info("Server started on port " + _port);
         } catch (IOException e) {
             LOGGER.error(e.getMessage() + " " + e.getCause());
         }

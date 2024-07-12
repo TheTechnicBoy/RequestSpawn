@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
@@ -18,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Base64;
 import java.util.Optional;
 
 import static me.thetechnicboy.requestspawn.RequestSpawn.LOGGER;
@@ -26,16 +28,38 @@ import static me.thetechnicboy.requestspawn.RequestSpawn.server;
 public class SpawnHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if(exchange.getRequestMethod().equals("POST")) {
-            if(exchange.getRequestHeaders().getFirst("Content-Type").equals("application/json")) {
-                handleRequest(exchange);
-            } else {
-                exchange.sendResponseHeaders(415, -1);
+
+        if(!exchange.getRequestMethod().equals("POST")) {
+            exchange.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        if(!exchange.getRequestHeaders().getFirst("Content-Type").equals("application/json")) {
+            exchange.sendResponseHeaders(415, -1);
+            return;
+        }
+
+        boolean auth = ModConfig.AUTH.get();
+        if (auth) {
+            String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Basic ")) {
+                exchange.sendResponseHeaders(401, -1);
+                return;
+            }
+
+            String base64Credentials = authHeader.substring("Basic".length()).trim();
+            String credentials = new String(Base64.getDecoder().decode(base64Credentials));
+            String[] values = credentials.split(":", 2);
+            String user = ModConfig.USERNAME.get();
+            String pass = ModConfig.PASSWORD.get();
+
+            if (values.length < 2 || !values[0].equals(user) || !values[1].equals(pass)) {
+                exchange.sendResponseHeaders(401, -1);
+                return;
             }
         }
-        else{
-            exchange.sendResponseHeaders(405, -1);
-        }
+
+        handleRequest(exchange);
     }
 
     public static void handleRequest(HttpExchange exchange) throws IOException {
@@ -65,6 +89,8 @@ public class SpawnHandler implements HttpHandler {
 
     public static KeyValuePair<Boolean, String> handleJSON(String body){
 
+        LOGGER.info("New Request received: " + body);
+
         if(!RequestSpawn.HTTPServerOnline){
             return new KeyValuePair<>(false, "World is not loaded!");
         }
@@ -72,7 +98,6 @@ public class SpawnHandler implements HttpHandler {
         JsonObject obj;
         //TRY TO PARSE THE STRING
         try{
-            LOGGER.error(body);
             obj = JsonParser.parseString(body).getAsJsonObject();
         }
         catch(Exception e){
